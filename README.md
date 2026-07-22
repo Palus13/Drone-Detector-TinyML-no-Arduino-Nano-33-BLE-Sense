@@ -21,6 +21,19 @@ microfone PDM onboard, processado e classificado localmente em menos de
 
 ## Como funciona
 
+graph LR
+    A[Microfone PDM<br>16 kHz] --> B(⏳ Janela de 1s<br>16.000 amostras);
+    B --> C[Extração MFCC<br>40 coeficientes x 63 frames];
+    C --> D[Rede Neural DS-CNN<br>TensorFlow Lite Micro];
+    D --> E[Probabilidade<br>0 a 1];
+    E --> F{Decisão};
+    F -->|> 0.8| G[LED Vermelho Piscando<br>Estado: 2 (Drone)];
+    F -->|0.5 - 0.8| H[LED Vermelho Estático<br>Estado: 1 (Possible)];
+    F -->|< 0.5| I[LED Verde<br>Estado: 0 (No Drone)];
+    G --> J[📱 Bluetooth<br>LightBlue App];
+    H --> J;
+    I --> J;
+
 ```
 Microfone PDM (16kHz) → janela de 1s → MFCC (40 coef. x 63 frames)
 → rede neural DS-CNN (TensorFlow Lite Micro) → probabilidade (0-1)
