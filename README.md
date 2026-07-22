@@ -16,8 +16,10 @@ microfone PDM onboard, processado e classificado localmente em menos de
 - 🔴 LED vermelho piscando: drone detectado com alta confiança
 - 📶 Bluetooth (BLE): transmite o estado e a probabilidade ao vivo, visível
   por qualquer app genérico de BLE (ex: [LightBlue](https://punchthrough.com/lightblue/))
-
-![Drone detectado](Arduino_Drone_2.jpeg)
+<p align="center">
+  <img src="Arduino_Drone_2.jpeg" alt="Drone sendo detectado pelo Arduino" width="500"><br>
+  <em>Arduino Nano 33 BLE Sense detectando o drone em tempo real</em>
+</p>
 
 ## Como funciona
 ```mermaid
