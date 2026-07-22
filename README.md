@@ -17,27 +17,21 @@ microfone PDM onboard, processado e classificado localmente em menos de
 - 📶 Bluetooth (BLE): transmite o estado e a probabilidade ao vivo, visível
   por qualquer app genérico de BLE (ex: [LightBlue](https://punchthrough.com/lightblue/))
 
-<!-- Sugestão: adicione aqui uma foto ou GIF da placa com o LED aceso -->
+![Drone detectado](Arduino_Drone_2.jpeg)
 
 ## Como funciona
-
+```mermaid
 graph LR
-    A[Microfone PDM<br>16 kHz] --> B(⏳ Janela de 1s<br>16.000 amostras);
-    B --> C[Extração MFCC<br>40 coeficientes x 63 frames];
-    C --> D[Rede Neural DS-CNN<br>TensorFlow Lite Micro];
-    D --> E[Probabilidade<br>0 a 1];
-    E --> F{Decisão};
-    F -->|> 0.8| G[LED Vermelho Piscando<br>Estado: 2 (Drone)];
-    F -->|0.5 - 0.8| H[LED Vermelho Estático<br>Estado: 1 (Possible)];
-    F -->|< 0.5| I[LED Verde<br>Estado: 0 (No Drone)];
-    G --> J[📱 Bluetooth<br>LightBlue App];
-    H --> J;
-    I --> J;
-
-```
-Microfone PDM (16kHz) → janela de 1s → MFCC (40 coef. x 63 frames)
-→ rede neural DS-CNN (TensorFlow Lite Micro) → probabilidade (0-1)
-→ LED + Bluetooth
+    A[Microfone PDM<br>16 kHz] --> B[Janela de 1s<br>16.000 amostras]
+    B --> C[Extração MFCC<br>40 coef. x 63 frames]
+    C --> D[Rede Neural DS-CNN<br>TensorFlow Lite Micro]
+    D --> E[Probabilidade<br>0.0 a 1.0]
+    E --> F{Limiar de Decisão}
+    F -->|≥ 0.8| G[DRONE<br>Estado: 2<br>LED Vermelho Piscando]
+    F -->|0.5 a 0.8| H[POSSIBLE<br>Estado: 1<br>LED Vermelho Fixo]
+    F -->|< 0.5| I[NO DRONE<br>Estado: 0<br>LED Verde Fixo]
+    G & H & I --> J[Bluetooth BLE<br>Notificação via LightBlue]
+ linkStyle default stroke:#333,stroke-width:2px;
 ```
 
 O pipeline de MFCC (FFT, banco de filtros mel, DCT) é calculado **em C++
