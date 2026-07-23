@@ -1,11 +1,10 @@
 # Drone Detector — TinyML on Arduino Nano 33 BLE Sense
 
-Real-time detection of a drone's sound (DJI Mini 4 Pro) using a TinyML
+Real-time **indoor** detection of a drone's sound (DJI Mini 4 Pro) using a TinyML
 neural network (DS-CNN) running **100% on-device** on an Arduino Nano 33
 BLE Sense Rev2 — no cloud, no Wi-Fi, no server. Audio is captured by the
 onboard PDM microphone, processed and classified locally in under 1
 second, with visual (RGB LED) and Bluetooth (BLE) indication.
-
 ![status](https://img.shields.io/badge/status-working-brightgreen)
 ![platform](https://img.shields.io/badge/platform-Arduino%20Nano%2033%20BLE%20Sense-blue)
 
@@ -114,14 +113,13 @@ recorded through the Arduino's own microphone.
 
 ## Known limitations
 
-- Mostly tested at ~0.5-5m from the drone; performance at longer
-  distances hasn't been validated.
+- Mostly tested in **indoor environments** at ~0.5-10m from the drone; outdoor
+  performance under wind and environmental noise has not yet been validated.
 - The personal fine-tuning dataset is small (16 five-second recordings);
   more recordings, across more conditions (distance, angle, environment),
   would likely improve robustness.
 - Tested with a single drone model (DJI Mini 4 Pro); does not validate
   generalization to other drones without new fine-tuning.
-- Occasional false negatives still occur in real-world use.
 
 ## Credits and third-party libraries
 
