@@ -114,14 +114,14 @@ recorded through the Arduino's own microphone.
 
 ## Known limitations
 
-- Mostly tested at ~0.5-1m from the drone; performance at longer
+- Mostly tested at ~0.5-5m from the drone; performance at longer
   distances hasn't been validated.
 - The personal fine-tuning dataset is small (16 five-second recordings);
   more recordings, across more conditions (distance, angle, environment),
   would likely improve robustness.
 - Tested with a single drone model (DJI Mini 4 Pro); does not validate
   generalization to other drones without new fine-tuning.
-- Occasional false positives/negatives still occur in real-world use.
+- Occasional false negatives still occur in real-world use.
 
 ## Credits and third-party libraries
 
