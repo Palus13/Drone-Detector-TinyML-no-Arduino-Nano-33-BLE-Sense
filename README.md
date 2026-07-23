@@ -1,135 +1,142 @@
-# Drone Detector — TinyML no Arduino Nano 33 BLE Sense
+# Drone Detector — TinyML on Arduino Nano 33 BLE Sense
 
-Detecção em tempo real do som de um drone (DJI Mini 4 Pro) usando uma rede
-neural TinyML (DS-CNN) rodando **100% embarcada** em um Arduino Nano 33 BLE
-Sense Rev2 — sem nuvem, sem Wi-Fi, sem servidor. Áudio captado pelo
-microfone PDM onboard, processado e classificado localmente em menos de
-1 segundo, com indicação visual (LED RGB) e via Bluetooth (BLE).
+Real-time detection of a drone's sound (DJI Mini 4 Pro) using a TinyML
+neural network (DS-CNN) running **100% on-device** on an Arduino Nano 33
+BLE Sense Rev2 — no cloud, no Wi-Fi, no server. Audio is captured by the
+onboard PDM microphone, processed and classified locally in under 1
+second, with visual (RGB LED) and Bluetooth (BLE) indication.
 
-![status](https://img.shields.io/badge/status-funcional-brightgreen)
+![status](https://img.shields.io/badge/status-working-brightgreen)
 ![platform](https://img.shields.io/badge/platform-Arduino%20Nano%2033%20BLE%20Sense-blue)
 
 ## Demo
 
-- 🟢 LED verde: sem drone
-- 🔴 LED vermelho sólido: drone detectado
-- 🔴 LED vermelho piscando: drone detectado com alta confiança
-- 📶 Bluetooth (BLE): transmite o estado e a probabilidade ao vivo, visível
-  por qualquer app genérico de BLE (ex: [LightBlue](https://punchthrough.com/lightblue/))
+- 🟢 Green LED: no drone
+- 🔴 Solid red LED: drone detected
+- 🔴 Fast-blinking red LED: drone detected with high confidence
+- 📶 Bluetooth (BLE): broadcasts state and probability live, readable by
+  any generic BLE app (e.g. [LightBlue](https://punchthrough.com/lightblue/))
+
 <p align="center">
-  <img src="Arduino_Drone_2.jpeg" alt="Drone sendo detectado pelo Arduino" width="500"><br>
-  <em>Arduino Nano 33 BLE Sense detectando o drone em tempo real</em>
+  <img src="Arduino_Drone_2.jpeg" alt="Drone being detected by the Arduino" width="500"><br>
+  <em>Arduino Nano 33 BLE Sense detecting the drone in real time</em>
 </p>
 
-## Como funciona
+## How it works
+
 ```mermaid
 graph LR
-    A[Microfone PDM<br>16 kHz] --> B[Janela de 1s<br>16.000 amostras]
-    B --> C[Extração MFCC<br>40 coef. x 63 frames]
-    C --> D[Rede Neural DS-CNN<br>TensorFlow Lite Micro]
-    D --> E[Probabilidade<br>0.0 a 1.0]
-    E --> F{Limiar de Decisão}
-    F -->|≥ 0.8| G[DRONE<br>Estado: 2<br>LED Vermelho Piscando]
-    F -->|0.5 a 0.8| H[POSSIBLE<br>Estado: 1<br>LED Vermelho Fixo]
-    F -->|< 0.5| I[NO DRONE<br>Estado: 0<br>LED Verde Fixo]
-    G & H & I --> J[Bluetooth BLE<br>Notificação via LightBlue]
+    A[PDM Microphone<br>16 kHz] --> B[1s Window<br>16,000 samples]
+    B --> C[MFCC Extraction<br>40 coef. x 63 frames]
+    C --> D[DS-CNN Neural Network<br>TensorFlow Lite Micro]
+    D --> E[Probability<br>0.0 to 1.0]
+    E --> F{Decision Threshold}
+    F -->|>= 0.8| G[DRONE<br>State: 2<br>Fast-Blinking Red LED]
+    F -->|0.5 to 0.8| H[POSSIBLE<br>State: 1<br>Solid Red LED]
+    F -->|< 0.5| I[NO DRONE<br>State: 0<br>Solid Green LED]
+    G & H & I --> J[Bluetooth BLE<br>Notification via LightBlue]
  linkStyle default stroke:#333,stroke-width:2px;
 ```
 
-O pipeline de MFCC (FFT, banco de filtros mel, DCT) é calculado **em C++
-puro no Arduino**, replicando bit a bit o `librosa.feature.mfcc()` usado
-no treino em Python (validado com diferença numérica < 0.002 contra o
-`librosa` original — veja `python/13_export_arduino_assets.py`).
+The MFCC pipeline (FFT, mel filterbank, DCT) is computed **in pure C++ on
+the Arduino**, replicating `librosa.feature.mfcc()` (used during training
+in Python) bit for bit — validated with a numerical difference below
+0.002 against the original `librosa` output (see
+`python/06_export_arduino_assets.py`).
 
-## Hardware necessário
+## Hardware required
 
 - Arduino Nano 33 BLE Sense **Rev2**
-- Cabo USB com dados (Micro-USB ou adaptador USB-C, conforme o seu PC)
-- (Opcional, para reproduzir o fine-tuning) um drone para gravar áudio próprio
+- USB data cable (Micro-USB or USB-C adapter, depending on your computer)
+- (Optional, to reproduce the fine-tuning step) a drone to record your own audio
 
-## Estrutura do repositório
+## Repository structure
 
 ```
 .
-├── python/           # Pipeline de treinamento (dataset → modelo → .tflite)
-├── arduino/           # Firmware (.ino) e assets gerados (.h)
+├── python/     # Training pipeline (dataset -> model -> .tflite -> .h files)
+├── arduino/    # Firmware (.ino) and generated assets (.h)
 ├── requirements.txt
 └── README.md
 ```
 
-Veja `python/README.md` e `arduino/README.md` para detalhes de cada parte.
+Scripts are meant to be run **from the repository root**
+(e.g. `python python/01_prepare_dataset.py`). See `python/README.md` and
+`arduino/README.md` for details on each part.
 
 ## Dataset
 
-Este projeto usa o **DroneAudioDataset** (binário: `yes_drone` / `unknown`),
-compilado por Sara Al-Emadi et al. como parte do trabalho *"Audio Based
+This project uses the **DroneAudioDataset** (binary: `yes_drone` /
+`unknown`), compiled by Sara Al-Emadi et al. as part of *"Audio Based
 Drone Detection and Identification using Deep Learning"*:
 
 > Al-Emadi, S. et al. *Audio Based Drone Detection and Identification
 > using Deep Learning*. IWCMC 2019.
 > Dataset: https://github.com/saraalemadi/DroneAudioDataset
 
-O dataset **não está incluído neste repositório** — baixe diretamente do
-link acima e coloque em `dataset/yes_drone/` e `dataset/unknown/` antes de
-rodar `python/03_prepare_dataset.py`.
+The dataset is **not included in this repository** — download it directly
+from the link above and place it in `dataset/yes_drone/` and
+`dataset/unknown/` before running `python/01_prepare_dataset.py`.
 
-## A jornada (resumo técnico)
+## The journey (technical summary)
 
-Esse projeto passou por algumas voltas até chegar no resultado final —
-documentando aqui porque cada uma ensinou algo:
+This project went through a few pivots before reaching the final result —
+documented here because each one taught something:
 
-1. **Arquitetura original (~8k parâmetros, sem redução espacial)** treinou
-   bem no PC (99% de acurácia no teste), mas generalizava mal em áudio
-   real até um primeiro fine-tuning com gravações próprias.
-2. **Tentativa de deploy via Edge Impulse (BYOM)** esbarrou em limitações
-   de plano gratuito (EON Compiler pago) e estouro de RAM — o modelo
-   pedia >1MB de RAM em tempo de execução porque a arquitetura nunca
-   reduzia a resolução espacial dos mapas de ativação.
-3. **Migração para TensorFlow Lite Micro puro** (sem Edge Impulse),
-   reescrevendo a arquitetura com `strides=2` em 4 blocos, reduzindo o
-   maior tensor intermediário de ~645KB para ~60KB.
-4. **Um fine-tuning com áudio do celular quase não funcionou** (55-64% de
-   acurácia) até identificarmos dois problemas: capacidade insuficiente
-   da primeira versão "enxuta" demais, e depois um efeito de
-   `BatchNormalization` destreinando com dataset pequeno.
-5. **Descoberta do "gap" de microfone**: o modelo fine-tunado com áudio do
-   celular funcionava bem no PC mas falhava no Arduino real — o
-   microfone PDM "ouve" diferente do microfone do celular. Solução:
-   gravar os dados de fine-tuning **com o próprio microfone do Arduino**
-   (`arduino/record_and_dump/` + `python/15_record_via_arduino.py`).
-6. **Otimizações finais de RAM** para caber modelo + MFCC + Bluetooth (BLE)
-   nos 256KB do nRF52840: string literals em vez de arrays C (compilação
-   mais leve), eliminação de buffers intermediários redundantes, e
-   ponto fixo (int16) em vez de float onde a precisão extra não importava.
+1. **Original architecture (~8k parameters, no spatial downsampling)**
+   trained well on the PC (99% test accuracy), but generalized poorly to
+   real audio until a first fine-tuning pass with personal recordings.
+2. **Attempted deployment via Edge Impulse (BYOM)** ran into free-tier
+   limitations (paid EON Compiler) and RAM overflow — the model requested
+   >1MB of runtime RAM because the architecture never reduced the spatial
+   resolution of its activation maps.
+3. **Migration to plain TensorFlow Lite Micro** (no Edge Impulse),
+   rewriting the architecture with `strides=2` across 4 blocks, shrinking
+   the largest intermediate tensor from ~645KB to ~60KB.
+4. **A fine-tuning run using phone-recorded audio barely worked**
+   (55-64% accuracy) until two problems were identified: insufficient
+   capacity in the first "too lightweight" version, and later a
+   `BatchNormalization` effect un-learning good statistics on a small
+   dataset.
+5. **Discovery of the microphone domain gap**: the model fine-tuned on
+   phone audio worked well on the PC but failed on the real Arduino — the
+   PDM microphone "hears" differently than a phone microphone. Fix:
+   record the fine-tuning data **with the Arduino's own microphone**
+   (`arduino/record_and_dump/` + `python/03_record_via_arduino.py`).
+6. **Final RAM optimizations** to fit model + MFCC buffers + Bluetooth
+   (BLE) inside the nRF52840's 256KB: C++ string literals instead of
+   comma-separated arrays (lighter to compile), removal of redundant
+   intermediate buffers, and fixed-point (int16) instead of float where
+   the extra precision didn't matter.
 
-Resultado final: **96.55% de acurácia de validação** no fine-tuning com
-áudio do próprio microfone do Arduino.
+Final result: **96.55% validation accuracy** after fine-tuning with audio
+recorded through the Arduino's own microphone.
 
-## Limitações conhecidas
+## Known limitations
 
-- Testado principalmente a ~0.5-1m de distância do drone; desempenho em
-  distâncias maiores não foi validado.
-- Dataset de fine-tuning pessoal é pequeno (16 gravações de 5s); mais
-  gravações, em mais condições (distância, ângulo, ambiente), tendem a
-  melhorar a robustez.
-- Testado com um único modelo de drone (DJI Mini 4 Pro); não valida
-  generalização para outros drones sem novo fine-tuning.
-- Ainda ocorrem falsos positivos/negativos ocasionais em uso real.
+- Mostly tested at ~0.5-1m from the drone; performance at longer
+  distances hasn't been validated.
+- The personal fine-tuning dataset is small (16 five-second recordings);
+  more recordings, across more conditions (distance, angle, environment),
+  would likely improve robustness.
+- Tested with a single drone model (DJI Mini 4 Pro); does not validate
+  generalization to other drones without new fine-tuning.
+- Occasional false positives/negatives still occur in real-world use.
 
-## Créditos e bibliotecas de terceiros
+## Credits and third-party libraries
 
 - [DroneAudioDataset](https://github.com/saraalemadi/DroneAudioDataset) — Sara Al-Emadi et al.
-- [ArduTFLite](https://github.com/spaziochirale/ArduTFLite) / [Chirale_TensorFlowLite](https://github.com/spaziochirale/TensorFlowLite_Chirale) — TensorFlow Lite Micro para Arduino
-- [arduinoFFT](https://github.com/kosme/arduinoFFT) — FFT em C++ para Arduino
+- [ArduTFLite](https://github.com/spaziochirale/ArduTFLite) / [Chirale_TensorFlowLite](https://github.com/spaziochirale/TensorFlowLite_Chirale) — TensorFlow Lite Micro for Arduino
+- [arduinoFFT](https://github.com/kosme/arduinoFFT) — FFT in C++ for Arduino
 - [ArduinoBLE](https://github.com/arduino-libraries/ArduinoBLE) — Bluetooth Low Energy
-- [librosa](https://librosa.org/) — processamento de áudio em Python
+- [librosa](https://librosa.org/) — audio processing in Python
 
-## Licença
+## License
 
-Este projeto (código próprio) está sob licença MIT — veja `LICENSE`.
-O dataset de terceiros usado no treino tem seus próprios termos; consulte
-o repositório original antes de redistribuir.
+This project's own code is under the MIT License — see `LICENSE`. The
+third-party dataset used for training has its own terms; check the
+original repository before redistributing it.
 
-## Autor
+## Author
 
 Ighor Ribeiro
